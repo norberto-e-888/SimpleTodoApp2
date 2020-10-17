@@ -1,0 +1,15 @@
+{
+	"compilerOptions": {
+		"module": "CommonJS",
+		"target": "ES2019",
+		"strict": true,
+		"esModuleInterop": true,
+		"moduleResolution": "Node",
+		"outDir": "build"
+	},
+	"exclude": ["node_modules", "build"],
+	"include": ["src/**/*.ts"]
+}
+
+// Transpilación TS -> JS
+// V8 Engine ni Navegadored Web corren TS, corren JS
