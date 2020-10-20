@@ -1,6 +1,7 @@
 import express from 'express'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
+import cookieParser from 'cookie-parser'
 import { userApi } from './content/user'
 
 export default async function main(): Promise<void> {
@@ -13,6 +14,14 @@ export default async function main(): Promise<void> {
 	})
 
 	app.use(bodyParser.json())
+	app.use(cookieParser())
+	/* app.use((req, res, next) => {
+		req.hello = ''
+
+		next()
+
+	}) */
+
 	app.use(userApi('/usuarios'))
 	app.listen(3000, () => {
 		console.log('Servidor corriendo en el puerto 3000...')

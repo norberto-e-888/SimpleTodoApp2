@@ -1,11 +1,4 @@
-import {
-	Schema,
-	model,
-	HookNextFunction,
-	Document,
-	Model,
-	Types,
-} from 'mongoose'
+import { Schema, model, HookNextFunction, Document, Model } from 'mongoose'
 import brcrypt from 'bcryptjs'
 
 /*
@@ -90,12 +83,13 @@ userSchema.pre('save', async function (
 
 export default model<IUserDocument, TUserModel>('User', userSchema)
 export interface IUsuario {
+	id: string
 	nombre: string
 	email: string
 	password: string
 	fechaDeNacimiento?: Date
 	sentiment?: ESentiment
-}
+} // de como se ve un JSON puro del usuario
 
 export interface IUserDocument extends IUsuario, Document {
 	id: string

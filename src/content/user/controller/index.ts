@@ -103,7 +103,56 @@ export const generateAuthenticationResult = async (
 	return { user, jwt }
 }
 
+export const authenticate = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		/* 
+		const c = 4
+		const a = {
+			b: 1,
+			c: 2
+		}
+		const { b, c: c2 } = a */
+		const { jwt: jwtCookie } = req.cookies
+		if (!jwtCookie) {
+			throw Error('No estás autenticado')
+		}
+
+		const { user } = jwt.verify(
+			jwtCookie,
+			process.env.JWT_SECRET as string
+		) as {
+			user: IUsuario
+			iat: number
+			exp: number
+		}
+
+		const userDocument = await UserModel.findById(user.id)
+		if (!userDocument) {
+			return next(new Error('No estás autenticado'))
+		}
+
+		req.user = userDocument
+		next()
+	} catch (error) {
+		return next(error)
+	}
+}
+
+declare module 'express' {
+	interface Request {
+		user?: IUserDocument
+	}
+}
+
 export interface IAuthenticationResult {
 	user: IUsuario
 	jwt: string
+}
+
+export interface IAuthenticatedRequest extends Request {
+	user?: IUserDocument
 }
