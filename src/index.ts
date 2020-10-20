@@ -4,6 +4,7 @@ import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import { userApi } from './content/user'
 import { AppError } from './lib'
+import { todoApi } from './content/todo'
 
 export default async function main(): Promise<void> {
 	const app = express()
@@ -17,6 +18,7 @@ export default async function main(): Promise<void> {
 	app.use(bodyParser.json())
 	app.use(cookieParser())
 	app.use(userApi('/usuarios'))
+	app.use(todoApi('/tareas'))
 	app.use((error: AppError, _: Request, res: Response, __: NextFunction) => {
 		return res.status(error.statusCode || 500).json({
 			isError: true,
