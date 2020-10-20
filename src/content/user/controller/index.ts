@@ -55,6 +55,15 @@ export const handleSignIn = async (
 	}
 }
 
+export const handleSignOut = async (_: Request, res: Response) => {
+	return res
+		.clearCookie('jwt', {
+			httpOnly: true,
+			secure: false,
+		})
+		.end()
+}
+
 export const handleFetchById = async (
 	req: Request,
 	res: Response,

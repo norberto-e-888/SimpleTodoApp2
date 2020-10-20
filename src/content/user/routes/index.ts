@@ -6,5 +6,6 @@ export default (prefix?: string) => {
 	const prefixedRouter = Router()
 	router.route('/registrar').post(UserController.handleSignUp)
 	router.route('/inicio').post(UserController.handleSignIn)
+	router.route('/salir').post(UserController.handleSignOut)
 	return prefix ? prefixedRouter.use(prefix, router) : router
 }
