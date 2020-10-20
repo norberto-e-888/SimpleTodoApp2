@@ -1,8 +1,9 @@
-import express from 'express'
+import express, { NextFunction, Request, Response } from 'express'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
 import { userApi } from './content/user'
+import { AppError } from './lib'
 
 export default async function main(): Promise<void> {
 	const app = express()
@@ -15,14 +16,14 @@ export default async function main(): Promise<void> {
 
 	app.use(bodyParser.json())
 	app.use(cookieParser())
-	/* app.use((req, res, next) => {
-		req.hello = ''
-
-		next()
-
-	}) */
-
 	app.use(userApi('/usuarios'))
+	app.use((error: AppError, _: Request, res: Response, __: NextFunction) => {
+		return res.status(error.statusCode || 500).json({
+			isError: true,
+			message: error.error || error.message || 'Oooops! Algo salío mal',
+		})
+	})
+
 	app.listen(3000, () => {
 		console.log('Servidor corriendo en el puerto 3000...')
 	})

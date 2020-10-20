@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
+import { AppError } from '../../../lib'
 import UserModel, { IUserDocument, IUsuario } from '../model'
 
 export const handleSignUp = async (
@@ -118,7 +119,7 @@ export const authenticate = async (
 		const { b, c: c2 } = a */
 		const { jwt: jwtCookie } = req.cookies
 		if (!jwtCookie) {
-			throw Error('No estás autenticado')
+			return next(new AppError('No estás autenticado', 401))
 		}
 
 		const { user } = jwt.verify(
@@ -132,7 +133,7 @@ export const authenticate = async (
 
 		const userDocument = await UserModel.findById(user.id)
 		if (!userDocument) {
-			return next(new Error('No estás autenticado'))
+			return next(new AppError('No estás autenticado', 401))
 		}
 
 		req.user = userDocument
