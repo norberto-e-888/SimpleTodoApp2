@@ -20,7 +20,7 @@ export const handleSignUp = async (
 		}
 
 		const newUser = await UserModel.create(req.body)
-		return res.status(201).json(newUser)
+		return res.status(201).json(newUser.toObject())
 	} catch (error) {
 		return next(error)
 	}
