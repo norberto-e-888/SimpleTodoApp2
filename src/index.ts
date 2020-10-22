@@ -23,6 +23,7 @@ export default async function main(): Promise<void> {
 		return res.status(error.statusCode || 500).json({
 			isError: true,
 			message: error.error || error.message || 'Oooops! Algo salío mal',
+			errors: error.validationErrors,
 		})
 	})
 

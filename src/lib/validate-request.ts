@@ -15,7 +15,14 @@ export default (
 			}
 		})
 
-		return next(new AppError(errors))
+		return next(
+			new AppError(
+				result.error.details.length > 1
+					? 'Errores de validación'
+					: 'Error de validación',
+				errors
+			)
+		)
 	}
 
 	next()
