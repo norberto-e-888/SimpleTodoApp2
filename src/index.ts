@@ -36,6 +36,12 @@ export default async function main(): Promise<void> {
 		})
 	})
 
+	app.use((req, res) => {
+		return res
+			.status(404)
+			.send(`${req.method} ${req.originalUrl} no existe en este servidor`)
+	})
+
 	app.listen(2000, () => {
 		console.log('Servidor corriendo en el puerto 2000...')
 	})
