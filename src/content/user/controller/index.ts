@@ -2,7 +2,8 @@ import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { AppError } from '../../../lib'
-import UserModel, { IUserDocument, IUsuario } from '../model'
+import { IUserDocument, IUsuario } from '../model'
+import { UserModel } from '..'
 
 export const handleSignUp = async (
 	req: Request,
@@ -10,14 +11,7 @@ export const handleSignUp = async (
 	next: NextFunction
 ) => {
 	try {
-		const doesUserAlreadyExist = !!(await UserModel.findOne({
-			email: req.body.email,
-		}))
-
-		if (doesUserAlreadyExist) {
-			throw Error(`Ya existe un usuario con email ${req.body.email}`)
-		}
-
+		await UserModel.isEmailInUse(req.body.email)
 		const newUser = await UserModel.create(req.body)
 		const authResult = await generateAuthenticationResult(newUser)
 		return sendAuthResponse(res, authResult, true)

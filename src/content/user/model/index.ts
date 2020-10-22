@@ -1,5 +1,6 @@
 import { Schema, model, HookNextFunction, Document, Model } from 'mongoose'
 import brcrypt from 'bcryptjs'
+import { validEmailRegEx } from '../../../constants'
 
 /*
     ID           nombre   apellido  edad
@@ -31,12 +32,17 @@ const userSchema = new Schema(
 			maxlength: 40,
 			trim: true,
 		},
+		apellido: {
+			type: String,
+			required: true,
+			minlength: 2,
+			maxlength: 40,
+			trim: true,
+		},
 		email: {
 			type: String,
 			required: true,
-			match: new RegExp(
-				/^[a-zA-Z0-9.!#$%&'*+/=?^_`{|}~-]+@[a-zA-Z0-9-]+(?:\.[a-zA-Z0-9-]+)*$/
-			),
+			match: validEmailRegEx,
 			trim: true,
 			unique: true,
 		},
@@ -81,7 +87,25 @@ userSchema.pre('save', async function (
 	next()
 })
 
-export default model<IUserDocument, TUserModel>('User', userSchema)
+userSchema.statics.isEmailInUse = async function (
+	this: IUserModel,
+	email: string,
+	{ throwIfExists = true }: IDoesEmailExistOptions = {
+		throwIfExists: true,
+	}
+): Promise<boolean> {
+	const user = await this.findOne({
+		email,
+	})
+
+	if (user && throwIfExists) {
+		throw new Error(`"${email}" ya está en uso`)
+	}
+
+	return !!user
+}
+
+export default model<IUserDocument, IUserModel>('User', userSchema)
 export interface IUsuario {
 	id: string
 	nombre: string
@@ -91,24 +115,14 @@ export interface IUsuario {
 	sentiment?: ESentiment
 } // de como se ve un JSON puro del usuario
 
+export interface IDoesEmailExistOptions {
+	throwIfExists?: boolean
+}
+
 export interface IUserDocument extends IUsuario, Document {
 	id: string
 }
 
-export type TUserModel = Model<IUserDocument>
-
-/* export interface ITest<T> {
-	a: string
-	b: number
-	c: T
+export interface IUserModel extends Model<IUserDocument> {
+	isEmailInUse(email: string): Promise<boolean>
 }
-
-const test: ITest<IUsuario> = {
-	a: 'hello',
-	b: 3,
-	c: {
-		nombre: 'fdf',
-		email: 'fsd',
-		password: '323'
-	}
-} */
