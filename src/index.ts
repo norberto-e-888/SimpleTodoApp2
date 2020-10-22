@@ -2,6 +2,7 @@ import express, { NextFunction, Request, Response } from 'express'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
+import cors from 'cors'
 import { userApi } from './content/user'
 import { AppError } from './lib'
 import { todoApi } from './content/todo'
@@ -14,6 +15,14 @@ export default async function main(): Promise<void> {
 		useFindAndModify: false,
 		useUnifiedTopology: true,
 	})
+
+	app.use(
+		cors({
+			credentials: true,
+			exposedHeaders: ['set-cookie'],
+			origin: ['http://localhost:3000'],
+		})
+	)
 
 	app.use(bodyParser.json())
 	app.use(cookieParser())
