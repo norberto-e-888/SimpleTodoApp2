@@ -18,5 +18,8 @@ export default (prefix?: string) => {
 		.route('/salir')
 		.post(UserController.authenticate, UserController.handleSignOut)
 
+	router
+		.route('/yo')
+		.get(UserController.authenticate, UserController.handleGetMe)
 	return prefix ? prefixedRouter.use(prefix, router) : router
 }

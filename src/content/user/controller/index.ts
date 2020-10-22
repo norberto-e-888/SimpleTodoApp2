@@ -71,6 +71,10 @@ export const handleFetchById = async (
 	}
 }
 
+export const handleGetMe = (req: Request, res: Response) => {
+	return res.status(req.user ? 200 : 401).json(req.user)
+}
+
 export const sendAuthResponse = (
 	res: Response,
 	authResult: IAuthenticationResult,
