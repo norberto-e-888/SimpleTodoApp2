@@ -27,8 +27,8 @@ export default async function main(): Promise<void> {
 		})
 	})
 
-	app.listen(3000, () => {
-		console.log('Servidor corriendo en el puerto 3000...')
+	app.listen(2000, () => {
+		console.log('Servidor corriendo en el puerto 2000...')
 	})
 }
 
