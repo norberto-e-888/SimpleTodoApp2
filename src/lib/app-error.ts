@@ -2,7 +2,7 @@ export default class AppError extends Error {
 	error: string | object
 	validationErrors: any
 	statusCode: number
-	constructor(error: string, statusCode = 400, validationErrors: any) {
+	constructor(error: string, statusCode = 400, validationErrors: any = null) {
 		super(error)
 		this.error = error
 		this.validationErrors = validationErrors
