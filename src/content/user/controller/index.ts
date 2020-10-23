@@ -4,6 +4,7 @@ import bcrypt from 'bcryptjs'
 import { AppError } from '../../../lib'
 import { IUserDocument, IUsuario } from '../model'
 import { UserModel } from '..'
+import env from '../../../env'
 
 export const handleSignUp = async (
 	req: Request,
@@ -90,7 +91,7 @@ export const sendAuthResponse = (
 }
 
 export const generateJwt = async (user: IUsuario): Promise<string> => {
-	return jwt.sign({ user }, process.env.JWT_SECRET as string) // type casting
+	return jwt.sign({ user }, env.auth.jwtSecret) // type casting
 	// cuando uno sabe más que el compilador sobre un tipado
 }
 
@@ -108,22 +109,12 @@ export const authenticate = async (
 	next: NextFunction
 ) => {
 	try {
-		/* 
-		const c = 4
-		const a = {
-			b: 1,
-			c: 2
-		}
-		const { b, c: c2 } = a */
 		const { jwt: jwtCookie } = req.cookies
 		if (!jwtCookie) {
 			return next(new AppError('No estás autenticado', 401))
 		}
 
-		const { user } = jwt.verify(
-			jwtCookie,
-			process.env.JWT_SECRET as string
-		) as {
+		const { user } = jwt.verify(jwtCookie, env.auth.jwtSecret) as {
 			user: IUsuario
 			iat: number
 			exp: number

@@ -6,10 +6,11 @@ import cors from 'cors'
 import { userApi } from './content/user'
 import { AppError } from './lib'
 import { todoApi } from './content/todo'
+import env from './env'
 
 export default async function main(): Promise<void> {
 	const app = express()
-	await mongoose.connect('mongodb://127.0.0.1:27017/SimpleTodoApp', {
+	await mongoose.connect(env.db.mongoUri, {
 		useNewUrlParser: true,
 		useCreateIndex: true,
 		useFindAndModify: false,
@@ -20,7 +21,7 @@ export default async function main(): Promise<void> {
 		cors({
 			credentials: true,
 			exposedHeaders: ['set-cookie'],
-			origin: ['http://localhost:3000'],
+			origin: [env.clientUrl],
 		})
 	)
 
@@ -43,8 +44,8 @@ export default async function main(): Promise<void> {
 			.send(`${req.method} ${req.originalUrl} no existe en este servidor`)
 	})
 
-	app.listen(2000, () => {
-		console.log('Servidor corriendo en el puerto 2000...')
+	app.listen(env.port, () => {
+		console.log(`Servidor corriendo en el puerto ${env.port}...`)
 	})
 }
 
