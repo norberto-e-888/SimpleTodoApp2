@@ -20,6 +20,7 @@ export default (
 				result.error.details.length > 1
 					? 'Errores de validación'
 					: 'Error de validación',
+				400,
 				errors
 			)
 		)
