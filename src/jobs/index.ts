@@ -22,7 +22,9 @@ export default async (mongo: Db) => {
 					$match: {
 						// filtrar
 						createdAt: {
-							$gte: new Date(Date.now() - 300000), // 5 minutos en milisegundos,
+							$gte: new Date(
+								Date.now() - env.azure.processTextEveryNMilliseconds
+							),
 						},
 					},
 				},

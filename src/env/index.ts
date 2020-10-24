@@ -26,9 +26,38 @@ if (!textAnalysisEndpoint || !cognitiveServicesApiKey) {
 	)
 }
 
+const processTextEveryNMilliseconds = parseInt(
+	process.env.PROCESS_TEXT_EVERY_N_MILLISECONDS || '300000'
+)
+
+if (processTextEveryNMilliseconds < 60000) {
+	throw Error(
+		'PROCESS_TEXT_EVERY_N_MILLISECONDS debe ser mayor o igual a 60,000'
+	)
+}
+
+const sendCompletedToTrashAfterNMilliseconds = parseInt(
+	process.env.SEND_TO_TRASH_AFTER_N_MILLISECONDS || '302400000'
+)
+
+if (sendCompletedToTrashAfterNMilliseconds < 86400000) {
+	throw Error('SEND_TO_TRASH_AFTER_N_MILLISECONDS debe ser mayor que 86400000')
+}
+
+const deleteAfterNMillisecondsInTrash = parseInt(
+	process.env.DELETE_AFTER_N_MILLISECONDS_IN_TRASH || '604800000'
+)
+
+if (deleteAfterNMillisecondsInTrash < 86400000) {
+	throw Error(
+		'DELETE_AFTER_N_MILLISECONDS_IN_TRASH debe ser mayor que 86400000'
+	)
+}
+
 const azure = {
 	textAnalysisEndpoint,
 	cognitiveServicesApiKey,
+	processTextEveryNMilliseconds,
 }
 
 const port = parseInt(process.env.PORT || '3000')
@@ -43,4 +72,8 @@ export default {
 	port,
 	clientUrl,
 	azure,
+	todos: {
+		sendCompletedToTrashAfterNMilliseconds,
+		deleteAfterNMillisecondsInTrash,
+	},
 }

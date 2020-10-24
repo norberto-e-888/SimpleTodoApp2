@@ -34,7 +34,6 @@ export default async function main(): Promise<void> {
 	app.use(userApi('/usuarios'))
 	app.use(todoApi('/tareas'))
 	app.use((error: AppError, _: Request, res: Response, __: NextFunction) => {
-		console.log('ERROR', error)
 		return res.status(error.statusCode || 500).json({
 			isError: true,
 			message: error.error || error.message || 'Oooops! Algo salío mal',
