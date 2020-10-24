@@ -2,17 +2,20 @@ import Agenda from 'agenda'
 import { Db } from 'mongodb'
 import { Types } from 'mongoose'
 import { TodoModel } from '../content/todo'
+import { EStatus } from '../content/todo/model'
 import { UserModel } from '../content/user'
 import { ELanguage, ESentiment } from '../content/user/model'
 import env from '../env'
 import { textAnalysisClient } from '../lib'
 
-export const analyzeText = 'AnalyzeText'
+const analyzeText = 'AnalyzeText'
+const moveToTrash = 'MoveToTrash'
+const emptyTrash = 'emptyTrash'
 export default async (mongo: Db) => {
 	const agenda = new Agenda({
 		db: { address: env.db.mongoUri, collection: 'crons' },
 		mongo,
-		processEvery: 2000,
+		processEvery: 1000 * 60 * 5,
 	})
 
 	agenda.define(analyzeText, async () => {
@@ -98,7 +101,41 @@ export default async (mongo: Db) => {
 		}
 	})
 
-	agenda.every('1 minute', analyzeText)
+	agenda.define(moveToTrash, async () => {
+		try {
+			await TodoModel.updateMany(
+				{
+					status: EStatus.Completed,
+					movedDate: {
+						$lte: new Date(
+							Date.now() - env.todos.sendCompletedToTrashAfterNMilliseconds
+						),
+					},
+				},
+				{ status: EStatus.Trash }
+			)
+		} catch (error) {
+			console.error(error)
+		}
+	})
+
+	agenda.define(emptyTrash, async () => {
+		try {
+			await TodoModel.deleteMany({
+				status: EStatus.Trash,
+				movedDate: {
+					$lte: new Date(
+						Date.now() - env.todos.deleteAfterNMillisecondsInTrash
+					),
+				},
+			})
+		} catch (error) {
+			console.error(error)
+		}
+	})
+
+	agenda.every('5 minutes', analyzeText)
+	agenda.every('1 day', moveToTrash)
 	await agenda.start()
 }
 

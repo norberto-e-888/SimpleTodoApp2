@@ -72,6 +72,7 @@ export interface ITodo {
 	id: string
 	body: string
 	user: string
+	status: EStatus
 	movedDate: Date
 	createdAt: Date
 	updatedAt: Date
