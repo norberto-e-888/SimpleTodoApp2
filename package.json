@@ -10,6 +10,7 @@
 	"author": "",
 	"license": "MIT",
 	"dependencies": {
+		"@azure/ai-text-analytics": "^5.0.1",
 		"@types/mongoose": "^5.7.36",
 		"bcryptjs": "^2.4.3",
 		"body-parser": "^1.19.0",

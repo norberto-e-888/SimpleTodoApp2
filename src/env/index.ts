@@ -18,6 +18,19 @@ if (!clientUrl) {
 	throw Error('CLIENT_URL debe estar definido')
 }
 
+const textAnalysisEndpoint = process.env.AZURE_TEXT_ANALYSIS_ENDPOINT
+const cognitiveServicesApiKey = process.env.AZURE_COGNITIVE_SERVICES_API_KEY
+if (!textAnalysisEndpoint || !cognitiveServicesApiKey) {
+	throw Error(
+		'Configuraciones de Azure text analysis incompletas (endpoint y api key)'
+	)
+}
+
+const azure = {
+	textAnalysisEndpoint,
+	cognitiveServicesApiKey,
+}
+
 const port = parseInt(process.env.PORT || '3000')
 export default {
 	auth: {
@@ -29,4 +42,5 @@ export default {
 	nodeEnv,
 	port,
 	clientUrl,
+	azure,
 }
