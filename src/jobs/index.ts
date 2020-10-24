@@ -55,13 +55,22 @@ export default async (mongo: Db) => {
 				},
 			])
 
+			/**
+			 * [{
+			 * 	_id: ObjectId('5f93850bd574f631f4e9e558'),
+			 *  texts: ['fdsfsd', 'sdfsdf', 'asdfasdf']
+			 * },{
+			 * _id: ObjectId('5f93850bd574f631f4e9e559'),
+			 *  texts: ['fdsfsd', 'sdfsdf', 'jkasjdfkjaskdf', 'asdfasdf']
+			 * }]
+			 */
+
 			if (!groups.length) return
 			const [sentimentResults, languageResults] = (await Promise.all([
 				textAnalysisClient.analyzeSentiment(groups),
 				textAnalysisClient.detectLanguage(groups),
 			])) as [ISentimentResult[], ILanguageResult[]]
 
-			console.log(sentimentResults, languageResults)
 			const userUpdates: IUserUpdates = {}
 			for (const { id, sentiment } of sentimentResults) {
 				userUpdates[id] = { sentiment }
