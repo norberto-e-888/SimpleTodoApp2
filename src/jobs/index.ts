@@ -20,7 +20,6 @@ export default async (mongo: Db) => {
 			const groups = await TodoModel.aggregate([
 				{
 					$match: {
-						// filtrar
 						createdAt: {
 							$gte: new Date(
 								Date.now() - env.azure.processTextEveryNMilliseconds
@@ -30,7 +29,6 @@ export default async (mongo: Db) => {
 				},
 				{
 					$group: {
-						// agrupar
 						_id: '$user',
 						texts: {
 							$push: '$body',
@@ -39,7 +37,6 @@ export default async (mongo: Db) => {
 				},
 				{
 					$project: {
-						// cambiar de forma
 						id: {
 							$toString: '$_id',
 						},
@@ -102,28 +99,8 @@ export default async (mongo: Db) => {
 	})
 
 	agenda.every('1 minute', analyzeText)
-	await agenda.start() // el tick: periodo de verificar la base de datos para ver si hay que correr algún cron
+	await agenda.start()
 }
-
-/**
- * [{
- *  id: userId
- *  text: cádena generada por la concatenación de los elementos del arreglos texts
- * },
- * {
- *  id: userId
- *  text: cádena generada por la concatenación de los elementos del arreglos texts
- * }
- * ]
- *
- *
- * {
- * 	a: 1,
- * 	b: 2,
- * 	c: 15
- * } -> Object.entries(this) -> [["a",1], ["b",2], ["c", 15]]
- *
- */
 
 interface ISentimentResult {
 	id: string
