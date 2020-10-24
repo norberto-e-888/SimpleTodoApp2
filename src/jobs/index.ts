@@ -145,6 +145,7 @@ export default async (mongo: Db) => {
 
 	agenda.every('5 minutes', analyzeText)
 	agenda.every('1 day', moveToTrash)
+	agenda.every('1 day', emptyTrash)
 	await agenda.start()
 }
 
