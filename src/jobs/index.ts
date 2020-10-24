@@ -1,7 +1,9 @@
 import Agenda from 'agenda'
 import { Db } from 'mongodb'
 import { TodoModel } from '../content/todo'
+import { ELanguage, ESentiment } from '../content/user/model'
 import env from '../env'
+import { textAnalysisClient } from '../lib'
 
 export const analyzeText = 'AnalyzeText'
 export default async (mongo: Db) => {
@@ -49,26 +51,30 @@ export default async (mongo: Db) => {
 				},
 			])
 
-			// arr.map -> res.length === arr.length -> true
-			// arr.filter -> res.length <= arr.length -> true
-			// arr.reduce -> res.length === 1 -> true
-			//    -1 -> 0
-			const a = [{ edad: 10 }, { edad: 20 }, { edad: 80 }, { edad: 50 }]
+			if (!groups.length) return
+			const [sentimentResults, languageResults] = (await Promise.all([
+				textAnalysisClient.analyzeSentiment(groups),
+				textAnalysisClient.detectLanguage(groups),
+			])) as [ISentimentResult[], ILanguageResult[]]
 
-			/*
-i -> 0 : prev -> 0, current -> {edad: 10} -> 10
-i -> 1 : prev -> 10, current -> {edad: 20} -> 30
-i -> 2 : prev -> 30, current -> {edad: 80} -> 110
-i -> 3 : prev -> 110, current -> {edad: 50} -> 160
+			const userUpdates: IUserUpdates = {}
+			for (const { id, sentiment } of sentimentResults) {
+				userUpdates[id] = { sentiment }
+			}
 
-* */
+			for (const {
+				id,
+				primaryLanguage: { iso6391Name },
+			} of languageResults) {
+				const update = { ...userUpdates[id] }
+				if (Object.values(ELanguage).includes(iso6391Name as ELanguage)) {
+					update.language = iso6391Name as ELanguage
+				}
 
-			const totalDeEdades = a.reduce((prev, current) => {
-				return prev + current.edad
-			}, 0)
+				userUpdates[id] = update
+			}
 
-			console.log('totalDeEdades', totalDeEdades)
-			console.log(analyzeText + ' corrió exitosamente, grupos:', groups)
+			console.log('userUpdates', userUpdates)
 		} catch (error) {
 			console.error(error)
 		}
@@ -91,3 +97,22 @@ i -> 3 : prev -> 110, current -> {edad: 50} -> 160
  *
  *
  */
+
+interface ISentimentResult {
+	id: string
+	sentiment: ESentiment
+}
+
+interface ILanguageResult {
+	id: string
+	primaryLanguage: {
+		iso6391Name: string
+	}
+}
+
+interface IUserUpdates {
+	[key: string]: {
+		sentiment?: ESentiment
+		language?: ELanguage
+	}
+}

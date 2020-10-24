@@ -23,6 +23,12 @@ export enum ESentiment {
 	Mixed = 'mixed',
 }
 
+export enum ELanguage {
+	Español = 'es',
+	Fránces = 'fr',
+	Ingles = 'en',
+}
+
 const userSchema = new Schema(
 	{
 		nombre: {
@@ -60,6 +66,11 @@ const userSchema = new Schema(
 			type: String,
 			enum: Object.values(ESentiment),
 			default: ESentiment.Neutral,
+		},
+		language: {
+			type: String,
+			enum: Object.values(ELanguage),
+			default: ELanguage.Español,
 		},
 	},
 	{
@@ -113,6 +124,7 @@ export interface IUsuario {
 	password: string
 	fechaDeNacimiento?: Date
 	sentiment?: ESentiment
+	language?: ELanguage
 } // de como se ve un JSON puro del usuario
 
 export interface IDoesEmailExistOptions {
