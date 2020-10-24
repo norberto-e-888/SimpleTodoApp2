@@ -6,17 +6,21 @@ import cors from 'cors'
 import { userApi } from './content/user'
 import { AppError } from './lib'
 import { todoApi } from './content/todo'
+import jobs from './jobs'
 import env from './env'
 
 export default async function main(): Promise<void> {
 	const app = express()
-	await mongoose.connect(env.db.mongoUri, {
+	const {
+		connection: { db },
+	} = await mongoose.connect(env.db.mongoUri, {
 		useNewUrlParser: true,
 		useCreateIndex: true,
 		useFindAndModify: false,
 		useUnifiedTopology: true,
 	})
 
+	await jobs(db)
 	app.use(
 		cors({
 			credentials: true,

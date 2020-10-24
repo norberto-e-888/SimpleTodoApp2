@@ -46,6 +46,10 @@ const todoSchema = new Schema(
 				__v: undefined,
 			}),
 		},
+		timestamps: {
+			createdAt: true,
+			updatedAt: true,
+		},
 	}
 )
 
@@ -69,6 +73,8 @@ export interface ITodo {
 	body: string
 	user: string
 	movedDate: Date
+	createdAt: Date
+	updatedAt: Date
 }
 
 export interface ITodoDocument extends ITodo, Document {
