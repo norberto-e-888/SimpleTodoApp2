@@ -1,6 +1,8 @@
 import Agenda from 'agenda'
 import { Db } from 'mongodb'
+import { Types } from 'mongoose'
 import { TodoModel } from '../content/todo'
+import { UserModel } from '../content/user'
 import { ELanguage, ESentiment } from '../content/user/model'
 import env from '../env'
 import { textAnalysisClient } from '../lib'
@@ -57,6 +59,7 @@ export default async (mongo: Db) => {
 				textAnalysisClient.detectLanguage(groups),
 			])) as [ISentimentResult[], ILanguageResult[]]
 
+			console.log(sentimentResults, languageResults)
 			const userUpdates: IUserUpdates = {}
 			for (const { id, sentiment } of sentimentResults) {
 				userUpdates[id] = { sentiment }
@@ -74,7 +77,23 @@ export default async (mongo: Db) => {
 				userUpdates[id] = update
 			}
 
-			console.log('userUpdates', userUpdates)
+			let bulk = UserModel.collection.initializeUnorderedBulkOp()
+			let count = 0
+			for (const [id, update] of Object.entries(userUpdates)) {
+				bulk.find({ _id: Types.ObjectId(id) }).updateOne({ $set: update })
+				count++
+				if (count === 500) {
+					await bulk.execute()
+					count = 0
+					bulk = UserModel.collection.initializeUnorderedBulkOp()
+				}
+			}
+
+			if (count > 0) {
+				await bulk.execute()
+			}
+
+			console.log(`${analyzeText} corrió exitosamente`)
 		} catch (error) {
 			console.error(error)
 		}
@@ -95,6 +114,12 @@ export default async (mongo: Db) => {
  * }
  * ]
  *
+ *
+ * {
+ * 	a: 1,
+ * 	b: 2,
+ * 	c: 15
+ * } -> Object.entries(this) -> [["a",1], ["b",2], ["c", 15]]
  *
  */
 
