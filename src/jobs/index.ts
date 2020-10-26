@@ -10,7 +10,7 @@ import { textAnalysisClient } from '../lib'
 
 const analyzeText = 'AnalyzeText'
 const moveToTrash = 'MoveToTrash'
-const emptyTrash = 'emptyTrash'
+const emptyTrash = 'EmptyTrash'
 export default async (mongo: Db) => {
 	const agenda = new Agenda({
 		db: { address: env.db.mongoUri, collection: 'crons' },
@@ -54,16 +54,6 @@ export default async (mongo: Db) => {
 					},
 				},
 			])
-
-			/**
-			 * [{
-			 * 	_id: ObjectId('5f93850bd574f631f4e9e558'),
-			 *  texts: ['fdsfsd', 'sdfsdf', 'asdfasdf']
-			 * },{
-			 * _id: ObjectId('5f93850bd574f631f4e9e559'),
-			 *  texts: ['fdsfsd', 'sdfsdf', 'jkasjdfkjaskdf', 'asdfasdf']
-			 * }]
-			 */
 
 			if (!groups.length) return
 			const [sentimentResults, languageResults] = (await Promise.all([
