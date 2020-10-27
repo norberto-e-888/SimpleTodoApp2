@@ -90,6 +90,7 @@ const userSchema = new Schema(schemaDefinition, {
 			password: undefined,
 			refreshToken: undefined,
 			emailVerificationToken: undefined,
+			passwordResetCode: undefined,
 			_id: undefined,
 			__v: undefined,
 		}),
