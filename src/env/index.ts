@@ -64,6 +64,11 @@ const jwtExpirationInSeconds = parseInt(
 	process.env.JWT_EXPIRY_IN_SECONDS || (1000 * 60 * 15).toString()
 )
 
+const mailGunApiKey = process.env.MAILGUN_API_KEY
+if (!mailGunApiKey) {
+	throw new Error('MAILGUN_API_KEY debe estar definido')
+}
+
 const port = parseInt(process.env.PORT || '3000')
 export default {
 	auth: {
@@ -81,4 +86,5 @@ export default {
 		sendCompletedToTrashAfterNMilliseconds,
 		deleteAfterNMillisecondsInTrash,
 	},
+	mailGunApiKey,
 }

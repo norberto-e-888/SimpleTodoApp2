@@ -73,6 +73,11 @@ const schemaDefinition: MongooseSchemaDefinition = {
 		default: ELanguage.Español,
 	},
 	refreshToken: String,
+	isEmailVerified: {
+		type: Boolean,
+		default: false,
+	},
+	emailVerificationToken: String,
 }
 
 const userSchema = new Schema(schemaDefinition, {
@@ -82,6 +87,8 @@ const userSchema = new Schema(schemaDefinition, {
 		transform: (_: IUserDocument, obj: IUsuario) => ({
 			...obj,
 			password: undefined,
+			refreshToken: undefined,
+			emailVerificationToken: undefined,
 			_id: undefined,
 			__v: undefined,
 		}),
@@ -134,6 +141,8 @@ export interface IUsuario {
 	sentiment?: ESentiment
 	language?: ELanguage
 	refreshToken: string | null
+	isEmailVerified: boolean
+	emailVerificationToken: string | null
 } // de como se ve un JSON puro del usuario
 
 export interface IDoesEmailExistOptions {

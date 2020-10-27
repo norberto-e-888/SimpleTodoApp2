@@ -29,5 +29,9 @@ export default (prefix?: string) => {
 			UserController.handleRefreshAuthentication
 		)
 
+	router
+		.route('/verificar-correo/:code')
+		.post(UserController.authenticate, UserController.handleVerifyEmail)
+
 	return prefix ? prefixedRouter.use(prefix, router) : router
 }

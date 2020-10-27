@@ -2,7 +2,7 @@ import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
 import { v1 as uuid } from 'uuid'
 import bcrypt from 'bcryptjs'
-import { AppError } from '../../../lib'
+import { AppError, mailGunClient } from '../../../lib'
 import { IUserDocument, IUsuario } from '../model'
 import { UserModel } from '..'
 import env from '../../../env'
@@ -16,6 +16,16 @@ export const handleSignUp = async (
 		await UserModel.isEmailInUse(req.body.email)
 		const newUser = await UserModel.create(req.body)
 		const authResult = await generateAuthenticationResult(newUser)
+		const verifyEmailToken = Math.floor(Math.random() * 90000) + 10000 //
+		newUser.emailVerificationToken = verifyEmailToken.toString()
+		await newUser.save({ validateBeforeSave: false })
+		await mailGunClient.messages().send({
+			from: 'test@sandbox27abd93a5ff84887bc8103d96fd46dc0.mailgun.org',
+			to: newUser.email,
+			subject: 'Tu código de verificación - SimpleTodoApp',
+			text: `Tu código de verificación: ${verifyEmailToken}`,
+		})
+
 		return sendAuthResponse(res, authResult, true)
 	} catch (error) {
 		return next(error)
@@ -78,6 +88,25 @@ export const handleGetMe = (req: Request, res: Response) => {
 	return res.status(req.user ? 200 : 401).json(req.user)
 }
 
+export const handleVerifyEmail = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		if (req.user?.emailVerificationToken === req.params.code) {
+			req.user.isEmailVerified = true
+			req.user.emailVerificationToken = null
+			await req.user.save({ validateBeforeSave: false })
+			return res.status(200).json(req.user.toObject())
+		}
+
+		return next(new AppError('Código incorrecto'))
+	} catch (error) {
+		return next(error)
+	}
+}
+
 export const sendAuthResponse = (
 	res: Response,
 	authResult: IAuthenticationResult,
@@ -97,7 +126,7 @@ export const sendAuthResponse = (
 }
 
 export const generateJwt = async (user: IUsuario): Promise<string> => {
-	return jwt.sign({ user }, env.auth.jwtSecret, { expiresIn: 5 }) // type casting
+	return jwt.sign({ user }, env.auth.jwtSecret, { expiresIn: 60 * 15 }) // type casting
 	// cuando uno sabe más que el compilador sobre un tipado
 }
 
@@ -108,8 +137,12 @@ export const generateAuthenticationResult = async (
 	const refreshToken = uuid()
 	user.refreshToken = refreshToken
 	await user.save({ validateBeforeSave: false })
-	const jwt = await generateJwt(userDocument.toObject())
-	return { user, jwt, refreshToken: await bcrypt.hash(refreshToken, 8) }
+	const jwt = await generateJwt(user.toObject())
+	return {
+		user: user.toObject(),
+		jwt,
+		refreshToken: await bcrypt.hash(refreshToken, 8),
+	}
 }
 
 export const authenticate = async (
