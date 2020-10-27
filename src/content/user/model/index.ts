@@ -78,6 +78,7 @@ const schemaDefinition: MongooseSchemaDefinition = {
 		default: false,
 	},
 	emailVerificationToken: String,
+	passwordResetCode: String,
 }
 
 const userSchema = new Schema(schemaDefinition, {
@@ -143,6 +144,7 @@ export interface IUsuario {
 	refreshToken: string | null
 	isEmailVerified: boolean
 	emailVerificationToken: string | null
+	passwordResetCode: string | null
 } // de como se ve un JSON puro del usuario
 
 export interface IDoesEmailExistOptions {

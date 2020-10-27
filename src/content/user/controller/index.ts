@@ -107,6 +107,62 @@ export const handleVerifyEmail = async (
 	}
 }
 
+export const handleRecoverAccount = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const user = await UserModel.findOne({ email: req.params.email })
+		if (!user) {
+			throw new AppError('Cuenta no existe', 404)
+		}
+
+		const recoverAccountCode = Math.floor(Math.random() * 90000) + 10000
+		user.passwordResetCode = recoverAccountCode.toString()
+		await user.save({ validateBeforeSave: false })
+		await mailGunClient.messages().send({
+			from: 'test@sandbox27abd93a5ff84887bc8103d96fd46dc0.mailgun.org',
+			to: user.email,
+			subject: 'Tu código de recuperación de cuenta - SimpleTodoApp',
+			text: `Tu código de recuperación de cuenta: ${recoverAccountCode}`,
+		})
+
+		return res.send('Hemos enviado un código de recuperación a tu correo')
+	} catch (error) {
+		return next(error)
+	}
+}
+
+export const handleResetPassword = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		const user = await UserModel.findOne({
+			email: req.params?.email,
+			passwordResetCode: req.params.code,
+		})
+
+		if (!user) {
+			throw new AppError('Código incorrecto')
+		}
+
+		if (!req.body.password) {
+			throw new AppError('Necesitas incluir tu nueva contraseña')
+		}
+
+		user.password = req.body.password
+		user.passwordResetCode = null
+		await user.save()
+		const authResponse = await generateAuthenticationResult(user)
+		return sendAuthResponse(res, authResponse)
+	} catch (error) {
+		return next(error)
+	}
+}
+
 export const sendAuthResponse = (
 	res: Response,
 	authResult: IAuthenticationResult,

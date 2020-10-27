@@ -33,5 +33,13 @@ export default (prefix?: string) => {
 		.route('/verificar-correo/:code')
 		.post(UserController.authenticate, UserController.handleVerifyEmail)
 
+	router
+		.route('/recuperar-cuenta/:email')
+		.post(UserController.handleRecoverAccount)
+
+	router
+		.route('/reiniciar-contrasena/:email/:code')
+		.patch(UserController.handleResetPassword)
+
 	return prefix ? prefixedRouter.use(prefix, router) : router
 }
