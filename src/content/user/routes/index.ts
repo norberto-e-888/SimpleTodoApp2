@@ -21,5 +21,13 @@ export default (prefix?: string) => {
 	router
 		.route('/yo')
 		.get(UserController.authenticate, UserController.handleGetMe)
+
+	router
+		.route('/refresh-auth')
+		.patch(
+			UserController.authenticate,
+			UserController.handleRefreshAuthentication
+		)
+
 	return prefix ? prefixedRouter.use(prefix, router) : router
 }

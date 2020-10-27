@@ -60,10 +60,15 @@ const azure = {
 	processTextEveryNMilliseconds,
 }
 
+const jwtExpirationInSeconds = parseInt(
+	process.env.JWT_EXPIRY_IN_SECONDS || (1000 * 60 * 15).toString()
+)
+
 const port = parseInt(process.env.PORT || '3000')
 export default {
 	auth: {
 		jwtSecret,
+		jwtExpirationInSeconds,
 	},
 	db: {
 		mongoUri,

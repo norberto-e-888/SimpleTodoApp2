@@ -1,5 +1,6 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
+import { v1 as uuid } from 'uuid'
 import bcrypt from 'bcryptjs'
 import { AppError } from '../../../lib'
 import { IUserDocument, IUsuario } from '../model'
@@ -51,7 +52,8 @@ export const handleSignIn = async (
 	}
 }
 
-export const handleSignOut = async (_: Request, res: Response) => {
+export const handleSignOut = async (req: Request, res: Response) => {
+	await UserModel.findByIdAndUpdate(req.user?.id, { refreshToken: null })
 	return res
 		.clearCookie('jwt', {
 			httpOnly: true,
@@ -87,20 +89,27 @@ export const sendAuthResponse = (
 			httpOnly: true,
 			secure: false,
 		})
+		.cookie('refreshToken', authResult.refreshToken, {
+			httpOnly: true,
+			secure: false,
+		})
 		.json(authResult.user)
 }
 
 export const generateJwt = async (user: IUsuario): Promise<string> => {
-	return jwt.sign({ user }, env.auth.jwtSecret) // type casting
+	return jwt.sign({ user }, env.auth.jwtSecret, { expiresIn: 5 }) // type casting
 	// cuando uno sabe más que el compilador sobre un tipado
 }
 
 export const generateAuthenticationResult = async (
 	userDocument: IUserDocument
 ): Promise<IAuthenticationResult> => {
-	const user = userDocument.toObject()
-	const jwt = await generateJwt(user)
-	return { user, jwt }
+	const user = userDocument
+	const refreshToken = uuid()
+	user.refreshToken = refreshToken
+	await user.save({ validateBeforeSave: false })
+	const jwt = await generateJwt(userDocument.toObject())
+	return { user, jwt, refreshToken: await bcrypt.hash(refreshToken, 8) }
 }
 
 export const authenticate = async (
@@ -114,7 +123,9 @@ export const authenticate = async (
 			return next(new AppError('No estás autenticado', 401))
 		}
 
-		const { user } = jwt.verify(jwtCookie, env.auth.jwtSecret) as {
+		const { user } = jwt.verify(jwtCookie, env.auth.jwtSecret, {
+			ignoreExpiration: ['/usuarios/refresh-auth'].includes(req.originalUrl),
+		}) as {
 			user: IUsuario
 			iat: number
 			exp: number
@@ -127,6 +138,32 @@ export const authenticate = async (
 
 		req.user = userDocument
 		next()
+	} catch (error) {
+		return next(new AppError(error.error || error.message, 401))
+	}
+}
+
+export const handleRefreshAuthentication = async (
+	req: Request,
+	res: Response,
+	next: NextFunction
+) => {
+	try {
+		if (!req.cookies.refreshToken || !req.user?.refreshToken) {
+			return next(new AppError('No estás auntenticado', 401))
+		}
+
+		if (
+			!bcrypt.compare(req.user.refreshToken as string, req.cookies.refreshToken)
+		) {
+			return next(new AppError('No estás auntenticado', 401))
+		}
+
+		const authResult = await generateAuthenticationResult(
+			req.user as IUserDocument
+		)
+
+		return sendAuthResponse(res, authResult)
 	} catch (error) {
 		return next(error)
 	}
@@ -141,6 +178,7 @@ declare module 'express' {
 export interface IAuthenticationResult {
 	user: IUsuario
 	jwt: string
+	refreshToken: string
 }
 
 export interface IAuthenticatedRequest extends Request {

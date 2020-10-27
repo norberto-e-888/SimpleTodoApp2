@@ -1,6 +1,7 @@
 import { Schema, model, HookNextFunction, Document, Model } from 'mongoose'
 import brcrypt from 'bcryptjs'
 import { validEmailRegEx } from '../../../constants'
+import { MongooseSchemaDefinition } from '../../../typings'
 
 /*
     ID           nombre   apellido  edad
@@ -29,63 +30,69 @@ export enum ELanguage {
 	Ingles = 'en',
 }
 
-const userSchema = new Schema(
-	{
-		nombre: {
-			type: String,
-			required: true,
-			minlength: 2,
-			maxlength: 40,
-			trim: true,
-		},
-		apellido: {
-			type: String,
-			required: true,
-			minlength: 2,
-			maxlength: 40,
-			trim: true,
-		},
-		email: {
-			type: String,
-			required: true,
-			match: validEmailRegEx,
-			trim: true,
-			unique: true,
-		},
-		password: {
-			type: String,
-			minlength: 8,
-			maxlength: 16,
-			trim: true,
-			required: true,
-		},
-		fechaDeNacimiento: {
-			type: Date,
-		},
-		sentiment: {
-			type: String,
-			enum: Object.values(ESentiment),
-			default: ESentiment.Neutral,
-		},
-		language: {
-			type: String,
-			enum: Object.values(ELanguage),
-			default: ELanguage.Español,
-		},
+const schemaDefinition: MongooseSchemaDefinition = {
+	nombre: {
+		type: String,
+		required: true,
+		minlength: 2,
+		maxlength: 40,
+		trim: true,
 	},
-	{
-		id: true,
-		toObject: {
-			virtuals: true,
-			transform: (_: IUserDocument, obj: IUsuario) => ({
-				...obj,
-				password: undefined,
-				_id: undefined,
-				__v: undefined,
-			}),
-		},
-	}
-)
+	apellido: {
+		type: String,
+		required: true,
+		minlength: 2,
+		maxlength: 40,
+		trim: true,
+	},
+	email: {
+		type: String,
+		required: true,
+		match: validEmailRegEx,
+		trim: true,
+		unique: true,
+	},
+	password: {
+		type: String,
+		minlength: 8,
+		maxlength: 16,
+		trim: true,
+		required: true,
+	},
+	fechaDeNacimiento: {
+		type: Date,
+	},
+	sentiment: {
+		type: String,
+		enum: Object.values(ESentiment),
+		default: ESentiment.Neutral,
+	},
+	language: {
+		type: String,
+		enum: Object.values(ELanguage),
+		default: ELanguage.Español,
+	},
+	refreshToken: String,
+}
+
+const userSchema = new Schema(schemaDefinition, {
+	id: true,
+	toObject: {
+		virtuals: true,
+		transform: (_: IUserDocument, obj: IUsuario) => ({
+			...obj,
+			password: undefined,
+			_id: undefined,
+			__v: undefined,
+		}),
+	},
+})
+
+userSchema.pre('validate', function (this: IUserDocument, next) {
+	console.log('this.password', this.password)
+
+	next()
+})
 
 userSchema.pre('save', async function (
 	this: IUserDocument,
@@ -120,11 +127,13 @@ export default model<IUserDocument, IUserModel>('User', userSchema)
 export interface IUsuario {
 	id: string
 	nombre: string
+	apellido: string
 	email: string
 	password: string
 	fechaDeNacimiento?: Date
 	sentiment?: ESentiment
 	language?: ELanguage
+	refreshToken: string | null
 } // de como se ve un JSON puro del usuario
 
 export interface IDoesEmailExistOptions {
@@ -138,3 +147,14 @@ export interface IUserDocument extends IUsuario, Document {
 export interface IUserModel extends Model<IUserDocument> {
 	isEmailInUse(email: string): Promise<boolean>
 }
+
+/**
+ * 	   	Más independiente
+ *         Interfaces   Tipados de TS
+ *         Model        Schema de Mongoose
+ *         Repositorio  Ignorante de lógica de negocio, solo conoce la interface de BD expresada en términos CRUD (Módelo Mongoose sirve en efecto de repositorio)
+ *         Service      Ignorante de HTTP y solo generación de lógica de negocio
+ * 		   Controlador  Conoce el contexto HTTP (handlers)
+ *         API       Curan, filtran, defines parámetros, y mapean a controladores a las consultas HTTP
+ *      Más dependiente
+ */

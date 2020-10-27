@@ -1,0 +1,1 @@
+import { IUserDocument } from '../model'
