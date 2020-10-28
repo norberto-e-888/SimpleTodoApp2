@@ -11,7 +11,17 @@ export default (prefix?: string) => {
 	todoRouter
 		.route('/')
 		.post(extendBodyWithUserId, TodoController.handleCreateTodo)
-		.get(useChache, TodoController.handleFetchTodos)
+		.get(
+			TodoController.curateTodosQuery,
+			useChache,
+			TodoController.handleFetchTodos
+		)
+		.delete(TodoController.handleEmptyTrash)
+
+	todoRouter
+		.route('/:todo')
+		.patch(TodoController.handleUpdateTodo)
+		.delete(TodoController.handleDeleteTodo)
 
 	return prefix ? prefixedRouter.use(prefix, todoRouter) : todoRouter
 }
