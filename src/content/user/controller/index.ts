@@ -216,8 +216,7 @@ export const sendAuthResponse = (
 }
 
 export const generateJwt = async (user: IUsuario): Promise<string> => {
-	return jwt.sign({ user }, env.auth.jwtSecret, { expiresIn: 60 * 15 }) // type casting
-	// cuando uno sabe más que el compilador sobre un tipado
+	return jwt.sign({ user }, env.auth.jwtSecret, { expiresIn: 60 * 15 })
 }
 
 export const generateAuthenticationResult = async (
