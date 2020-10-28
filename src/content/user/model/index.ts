@@ -166,7 +166,7 @@ export interface IUsuario {
 	refreshToken?: string
 	emailVerificationCode?: IUserCode
 	passwordResetCode?: IUserCode
-} // de como se ve un JSON puro del usuario
+}
 
 export interface IDoesEmailExistOptions {
 	throwIfExists?: boolean
