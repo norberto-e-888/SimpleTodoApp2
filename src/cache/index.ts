@@ -2,14 +2,13 @@ import { NextFunction, Request, Response } from 'express'
 import { IAuthenticatedRequest } from '../content/user/controller'
 import { redisClient } from '../lib'
 
-export const createChacheKey = (
-	req: IAuthenticatedRequest,
-	resource: TResource
-) =>
-	`resource-${resource}:user-${req.user?.id}:query-${JSON.stringify(req.query)}`
+export const createChacheKey = (req: IAuthenticatedRequest) =>
+	`resource-${req.originalUrl}:user-${req.user?.id}:query-${JSON.stringify(
+		req.query
+	)}`
 
 export const useChache = (req: Request, res: Response, next: NextFunction) => {
-	const key = createChacheKey(req, 'todos')
+	const key = createChacheKey(req)
 	redisClient.get(key, (err, value) => {
 		if (err || !value) {
 			return next()
@@ -34,5 +33,3 @@ export const deleteUserCache = (userId: string) => {
 		await Promise.all(deletePromises)
 	})
 }
-
-type TResource = 'todos'

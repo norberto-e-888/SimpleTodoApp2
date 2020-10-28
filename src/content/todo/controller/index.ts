@@ -25,7 +25,7 @@ export const handleFetchTodos = async (
 ) => {
 	try {
 		const todos = await TodoModel.find({ user: req.user?.id })
-		const key = createChacheKey(req, 'todos')
+		const key = createChacheKey(req)
 		redisClient.set(key, JSON.stringify(todos))
 		redisClient.expire(key, 60 * 15)
 		return res.json(todos)
