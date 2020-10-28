@@ -4,20 +4,6 @@ import { validEmailRegEx } from '../../../constants'
 import { MongooseSchemaDefinition } from '../../../typings'
 import { generateCode } from '../../../lib'
 
-/*
-    ID           nombre   apellido  edad
-19829389819234  norberto  cáceres   26
-
-MONGO DB <--> SQL
-Documentos vs Filas
-Colleciones vs Tablas
-Propiedades vs Columnas
-
-Model Mongoose: Operaciones CRUD, enforzar un schema para la colleción
-Relación 1 a 1 entre model y colección
-*/
-// string interface TS vs String clase JS -> number vs Number
-
 export enum ESentiment {
 	Positive = 'positive',
 	Negative = 'negative',

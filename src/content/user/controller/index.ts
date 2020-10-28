@@ -296,11 +296,24 @@ export const handleRefreshAuthentication = async (
 		) as IRefreshTokenPayload
 
 		if (payload.ip !== req.ip) {
-			return next(new AppError('No estás autenticado', 401))
+			return res
+				.status(401)
+				.clearCookie('jwt', {
+					httpOnly: true,
+					secure: false,
+				})
+				.clearCookie('refreshToken', {
+					httpOnly: true,
+					secure: false,
+				})
+				.end()
 		}
 
-		const authResult = await generateAuthenticationResult(req.user, req.ip)
-		return sendAuthResponse(res, authResult)
+		const newAuthorizationToken = await generateJwt(req.user.toObject())
+		return res
+			.status(200)
+			.cookie('jwt', newAuthorizationToken, { httpOnly: true, secure: false })
+			.end()
 	} catch (error) {
 		return next(error)
 	}
