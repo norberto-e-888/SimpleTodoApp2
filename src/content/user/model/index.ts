@@ -93,12 +93,6 @@ const userSchema = new Schema(schemaDefinition, {
 	},
 })
 
-userSchema.pre('validate', function (this: IUserDocument, next) {
-	console.log('this.password', this.password)
-
-	next()
-})
-
 userSchema.pre('save', async function (
 	this: IUserDocument,
 	next: HookNextFunction
