@@ -13,8 +13,8 @@ export default (
 
 	let opciones = ''
 	let codigo = ''
-	const allowedChars = new Set(chars.split(''))
-	for (let char of allowedChars) {
+	const allowedChars = Array.from(new Set(chars.split('')))
+	for (const char of allowedChars) {
 		switch (char) {
 			case 'A':
 				opciones += mayusculas
@@ -39,12 +39,12 @@ export default (
 
 	for (let i = 0; i < longitud; i++) {
 		if (!posibilidadesIguales) {
-			const randomIndex = Math.floor(Math.random() * opciones.length - 1)
+			const randomIndex = Math.floor(Math.random() * opciones.length)
 			codigo += opciones[randomIndex]
 		} else {
-			const randomIndex = Math.floor(Math.random() * allowedChars.size - 1)
+			const randomIndex = Math.floor(Math.random() * allowedChars.length)
 			let opcionesDeEstaIteracion = ''
-			switch (Array.from(allowedChars)[randomIndex]) {
+			switch (allowedChars[randomIndex]) {
 				case 'A':
 					opcionesDeEstaIteracion = mayusculas
 					break
@@ -66,7 +66,7 @@ export default (
 			}
 
 			const randomSetIndex = Math.floor(
-				Math.random() * opcionesDeEstaIteracion.length - 1
+				Math.random() * (opcionesDeEstaIteracion.length - 1)
 			)
 
 			codigo += opcionesDeEstaIteracion[randomSetIndex]

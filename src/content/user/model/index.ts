@@ -17,6 +17,11 @@ export enum ELanguage {
 	Ingles = 'en',
 }
 
+const userCodeSchema = {
+	value: String,
+	expiration: Date,
+}
+
 const schemaDefinition: MongooseSchemaDefinition = {
 	nombre: {
 		type: String,
@@ -59,13 +64,17 @@ const schemaDefinition: MongooseSchemaDefinition = {
 		enum: Object.values(ELanguage),
 		default: ELanguage.Español,
 	},
-	refreshToken: String,
 	isEmailVerified: {
 		type: Boolean,
 		default: false,
 	},
-	emailVerificationCode: String,
-	passwordResetCode: String,
+	emailVerificationCode: {
+		type: userCodeSchema,
+	},
+	passwordResetCode: {
+		type: userCodeSchema,
+	},
+	refreshToken: String,
 }
 
 const userSchema = new Schema(schemaDefinition, {
