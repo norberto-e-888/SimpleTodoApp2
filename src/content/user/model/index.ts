@@ -182,4 +182,5 @@ interface ISetCodeOptions {
 	save: boolean
 	expiresIn: number
 }
+
 type TSetCodeProperties = 'emailVerificationCode' | 'passwordResetCode'
