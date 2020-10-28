@@ -1,11 +1,10 @@
 import { NextFunction, Request, Response } from 'express'
 import jwt from 'jsonwebtoken'
-import { v1 as uuid } from 'uuid'
 import bcrypt from 'bcryptjs'
 import { AppError, mailGunClient } from '../../../lib'
 import { IUserDocument, IUsuario } from '../model'
-import { UserModel } from '..'
 import env from '../../../env'
+import { UserModel } from '..'
 
 export const handleSignUp = async (
 	req: Request,
@@ -15,7 +14,7 @@ export const handleSignUp = async (
 	try {
 		await UserModel.isEmailInUse(req.body.email)
 		const newUser = await UserModel.create(req.body)
-		const authResult = await generateAuthenticationResult(newUser)
+		const authResult = await generateAuthenticationResult(newUser, req.ip)
 		const emailVerificationCode = await newUser.setCode(
 			'emailVerificationCode',
 			{ save: true, expiresIn: 1000 * 60 * 60 * 24 * 7 }
@@ -57,7 +56,7 @@ export const handleSignIn = async (
 			throw new Error('Credenciales inválidas')
 		}
 
-		const authResult = await generateAuthenticationResult(user)
+		const authResult = await generateAuthenticationResult(user, req.ip)
 		return sendAuthResponse(res, authResult)
 	} catch (error) {
 		return next(error)
@@ -191,7 +190,7 @@ export const handleResetPassword = async (
 		user.password = req.body.password
 		user.passwordResetCode = undefined
 		await user.save()
-		const authResponse = await generateAuthenticationResult(user)
+		const authResponse = await generateAuthenticationResult(user, req.ip)
 		return sendAuthResponse(res, authResponse)
 	} catch (error) {
 		return next(error)
@@ -222,17 +221,22 @@ export const generateJwt = async (user: IUsuario): Promise<string> => {
 }
 
 export const generateAuthenticationResult = async (
-	userDocument: IUserDocument
+	userDocument: IUserDocument,
+	ip: string
 ): Promise<IAuthenticationResult> => {
 	const user = userDocument
-	const refreshToken = uuid()
-	user.refreshToken = refreshToken
+	const payload: IRefreshTokenPayload = { ip }
+	const refreshToken = jwt.sign(payload, env.auth.jwtSecret, {
+		expiresIn: '365 days',
+	})
+
+	user.refreshToken = await bcrypt.hash(refreshToken, 4)
 	await user.save({ validateBeforeSave: false })
-	const jwt = await generateJwt(user.toObject())
+	const authenticationToken = await generateJwt(user.toObject())
 	return {
 		user: user.toObject(),
-		jwt,
-		refreshToken: await bcrypt.hash(refreshToken, 8),
+		jwt: authenticationToken,
+		refreshToken,
 	}
 }
 
@@ -273,20 +277,29 @@ export const handleRefreshAuthentication = async (
 	next: NextFunction
 ) => {
 	try {
-		if (!req.cookies.refreshToken || !req.user?.refreshToken) {
+		if (!req.cookies.refreshToken || !req.user || !req.user.refreshToken) {
 			return next(new AppError('No estás auntenticado', 401))
 		}
 
-		if (
-			!bcrypt.compare(req.user.refreshToken as string, req.cookies.refreshToken)
-		) {
-			return next(new AppError('No estás auntenticado', 401))
-		}
-
-		const authResult = await generateAuthenticationResult(
-			req.user as IUserDocument
+		const isCodeValid = await bcrypt.compare(
+			req.cookies.refreshToken,
+			req.user.refreshToken
 		)
 
+		if (!isCodeValid) {
+			return next(new AppError('No estás autenticado', 401))
+		}
+
+		const payload = jwt.verify(
+			req.cookies.refreshToken,
+			env.auth.jwtSecret
+		) as IRefreshTokenPayload
+
+		if (payload.ip !== req.ip) {
+			return next(new AppError('No estás autenticado', 401))
+		}
+
+		const authResult = await generateAuthenticationResult(req.user, req.ip)
 		return sendAuthResponse(res, authResult)
 	} catch (error) {
 		return next(error)
@@ -301,6 +314,10 @@ export interface IAuthenticationResult {
 
 export interface IAuthenticatedRequest extends Request {
 	user?: IUserDocument
+}
+
+export interface IRefreshTokenPayload {
+	ip: string
 }
 
 declare module 'express' {
