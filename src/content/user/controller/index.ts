@@ -16,14 +16,16 @@ export const handleSignUp = async (
 		await UserModel.isEmailInUse(req.body.email)
 		const newUser = await UserModel.create(req.body)
 		const authResult = await generateAuthenticationResult(newUser)
-		const verifyEmailToken = Math.floor(Math.random() * 90000) + 10000 //
-		newUser.emailVerificationToken = verifyEmailToken.toString()
-		await newUser.save({ validateBeforeSave: false })
-		await mailGunClient.messages().send({
+		const emailVerificationCode = await newUser.setCode(
+			'emailVerificationCode',
+			{ save: true, expiresIn: 1000 * 60 * 60 * 24 * 7 }
+		)
+
+		mailGunClient.messages().send({
 			from: 'test@sandbox27abd93a5ff84887bc8103d96fd46dc0.mailgun.org',
 			to: newUser.email,
 			subject: 'Tu código de verificación - SimpleTodoApp',
-			text: `Tu código de verificación: ${verifyEmailToken}`,
+			text: `Tu código de verificación: ${emailVerificationCode}`,
 		})
 
 		return sendAuthResponse(res, authResult, true)
@@ -63,7 +65,7 @@ export const handleSignIn = async (
 }
 
 export const handleSignOut = async (req: Request, res: Response) => {
-	await UserModel.findByIdAndUpdate(req.user?.id, { refreshToken: null })
+	await UserModel.findByIdAndUpdate(req.user?.id, { refreshToken: undefined })
 	return res
 		.clearCookie('jwt', {
 			httpOnly: true,
@@ -94,14 +96,28 @@ export const handleVerifyEmail = async (
 	next: NextFunction
 ) => {
 	try {
-		if (req.user?.emailVerificationToken === req.params.code) {
-			req.user.isEmailVerified = true
-			req.user.emailVerificationToken = null
-			await req.user.save({ validateBeforeSave: false })
-			return res.status(200).json(req.user.toObject())
+		if (!req.user?.emailVerificationCode?.value) {
+			return next(new AppError('Usuario inválido'))
 		}
 
-		return next(new AppError('Código incorrecto'))
+		const isCodeExpired = req.user.emailVerificationCode.expiration < new Date()
+		if (isCodeExpired) {
+			return next(new AppError('Código expirado', 403))
+		}
+
+		const isCodeValid = await bcrypt.compare(
+			req.params.code,
+			req.user.emailVerificationCode.value
+		)
+
+		if (!isCodeValid) {
+			return next(new AppError('Código inválido', 403))
+		}
+
+		req.user.isEmailVerified = true
+		req.user.emailVerificationCode = undefined
+		await req.user.save({ validateBeforeSave: false })
+		return res.status(200).json(req.user.toObject())
 	} catch (error) {
 		return next(error)
 	}
@@ -118,14 +134,16 @@ export const handleRecoverAccount = async (
 			throw new AppError('Cuenta no existe', 404)
 		}
 
-		const recoverAccountCode = Math.floor(Math.random() * 90000) + 10000
-		user.passwordResetCode = recoverAccountCode.toString()
-		await user.save({ validateBeforeSave: false })
-		await mailGunClient.messages().send({
+		const passwordResetCode = await user.setCode('passwordResetCode', {
+			save: true,
+			expiresIn: 1000 * 60 * 60 * 24,
+		})
+
+		mailGunClient.messages().send({
 			from: 'test@sandbox27abd93a5ff84887bc8103d96fd46dc0.mailgun.org',
 			to: user.email,
 			subject: 'Tu código de recuperación de cuenta - SimpleTodoApp',
-			text: `Tu código de recuperación de cuenta: ${recoverAccountCode}`,
+			text: `Tu código de recuperación de cuenta: ${passwordResetCode}`,
 		})
 
 		return res.send('Hemos enviado un código de recuperación a tu correo')
@@ -142,19 +160,36 @@ export const handleResetPassword = async (
 	try {
 		const user = await UserModel.findOne({
 			email: req.params?.email,
-			passwordResetCode: req.params.code,
 		})
 
 		if (!user) {
-			throw new AppError('Código incorrecto')
+			return next(new AppError('Cuenta no existe'))
+		}
+
+		if (!user.passwordResetCode?.value) {
+			return next(new AppError('Usuario inválido'))
+		}
+
+		const isCodeExpired = user.passwordResetCode.expiration < new Date()
+		if (isCodeExpired) {
+			return next(new AppError('Código expirado', 403))
+		}
+
+		const isCodeValid = await bcrypt.compare(
+			req.params.code as string,
+			user.passwordResetCode.value
+		)
+
+		if (!isCodeValid) {
+			return next(new AppError('Código inválido', 403))
 		}
 
 		if (!req.body.password) {
-			throw new AppError('Necesitas incluir tu nueva contraseña')
+			return next(new AppError('Necesitas incluir tu nueva contraseña'))
 		}
 
 		user.password = req.body.password
-		user.passwordResetCode = null
+		user.passwordResetCode = undefined
 		await user.save()
 		const authResponse = await generateAuthenticationResult(user)
 		return sendAuthResponse(res, authResponse)
@@ -203,7 +238,7 @@ export const generateAuthenticationResult = async (
 
 export const authenticate = async (
 	req: Request,
-	res: Response,
+	_: Response,
 	next: NextFunction
 ) => {
 	try {
@@ -258,12 +293,6 @@ export const handleRefreshAuthentication = async (
 	}
 }
 
-declare module 'express' {
-	interface Request {
-		user?: IUserDocument
-	}
-}
-
 export interface IAuthenticationResult {
 	user: IUsuario
 	jwt: string
@@ -272,4 +301,10 @@ export interface IAuthenticationResult {
 
 export interface IAuthenticatedRequest extends Request {
 	user?: IUserDocument
+}
+
+declare module 'express' {
+	interface Request {
+		user?: IUserDocument
+	}
 }

@@ -2,6 +2,7 @@ import { Schema, model, HookNextFunction, Document, Model } from 'mongoose'
 import brcrypt from 'bcryptjs'
 import { validEmailRegEx } from '../../../constants'
 import { MongooseSchemaDefinition } from '../../../typings'
+import { generateCode } from '../../../lib'
 
 /*
     ID           nombre   apellido  edad
@@ -77,7 +78,7 @@ const schemaDefinition: MongooseSchemaDefinition = {
 		type: Boolean,
 		default: false,
 	},
-	emailVerificationToken: String,
+	emailVerificationCode: String,
 	passwordResetCode: String,
 }
 
@@ -89,7 +90,7 @@ const userSchema = new Schema(schemaDefinition, {
 			...obj,
 			password: undefined,
 			refreshToken: undefined,
-			emailVerificationToken: undefined,
+			emailVerificationCode: undefined,
 			passwordResetCode: undefined,
 			_id: undefined,
 			__v: undefined,
@@ -132,6 +133,25 @@ userSchema.statics.isEmailInUse = async function (
 	return !!user
 }
 
+userSchema.methods.setCode = async function (
+	this: IUserDocument,
+	property: TSetCodeProperties,
+	{ save = true, expiresIn = 1000 * 60 * 60 }
+): Promise<string> {
+	const code = generateCode(6, { posibilidadesIguales: true })
+	const codeHash = await brcrypt.hash(code, 4)
+	this[property] = {
+		value: codeHash,
+		expiration: new Date(Date.now() + expiresIn),
+	}
+
+	if (save) {
+		await this.save({ validateBeforeSave: false })
+	}
+
+	return code
+}
+
 export default model<IUserDocument, IUserModel>('User', userSchema)
 export interface IUsuario {
 	id: string
@@ -142,10 +162,10 @@ export interface IUsuario {
 	fechaDeNacimiento?: Date
 	sentiment?: ESentiment
 	language?: ELanguage
-	refreshToken: string | null
 	isEmailVerified: boolean
-	emailVerificationToken: string | null
-	passwordResetCode: string | null
+	refreshToken?: string
+	emailVerificationCode?: IUserCode
+	passwordResetCode?: IUserCode
 } // de como se ve un JSON puro del usuario
 
 export interface IDoesEmailExistOptions {
@@ -154,19 +174,23 @@ export interface IDoesEmailExistOptions {
 
 export interface IUserDocument extends IUsuario, Document {
 	id: string
+	setCode(
+		property: TSetCodeProperties,
+		options: ISetCodeOptions
+	): Promise<string>
 }
 
 export interface IUserModel extends Model<IUserDocument> {
 	isEmailInUse(email: string): Promise<boolean>
 }
 
-/**
- * 	   	Más independiente
- *         Interfaces   Tipados de TS
- *         Model        Schema de Mongoose
- *         Repositorio  Ignorante de lógica de negocio, solo conoce la interface de BD expresada en términos CRUD (Módelo Mongoose sirve en efecto de repositorio)
- *         Service      Ignorante de HTTP y solo generación de lógica de negocio
- * 		   Controlador  Conoce el contexto HTTP (handlers)
- *         API       Curan, filtran, defines parámetros, y mapean a controladores a las consultas HTTP
- *      Más dependiente
- */
+export interface IUserCode {
+	value: string
+	expiration: Date
+}
+
+interface ISetCodeOptions {
+	save: boolean
+	expiresIn: number
+}
+type TSetCodeProperties = 'emailVerificationCode' | 'passwordResetCode'
