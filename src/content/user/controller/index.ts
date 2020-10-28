@@ -70,6 +70,7 @@ export const handleSignOut = async (req: Request, res: Response) => {
 			httpOnly: true,
 			secure: false,
 		})
+		.clearCookie('refreshToken', { httpOnly: true, secure: false })
 		.end()
 }
 

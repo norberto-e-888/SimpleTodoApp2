@@ -127,7 +127,7 @@ userSchema.methods.setCode = async function (
 	property: TSetCodeProperties,
 	{ save = true, expiresIn = 1000 * 60 * 60 }
 ): Promise<string> {
-	const code = generateCode(6, { posibilidadesIguales: true })
+	const code = generateCode(6, { posibilidadesIguales: true, chars: 'Aa#' })
 	const codeHash = await brcrypt.hash(code, 4)
 	this[property] = {
 		value: codeHash,
