@@ -21,7 +21,7 @@ export const handleSignUp = async (
 		)
 
 		mailGunClient.messages().send({
-			from: 'test@sandbox27abd93a5ff84887bc8103d96fd46dc0.mailgun.org',
+			from: 'SimpleTodoApp@sandbox27abd93a5ff84887bc8103d96fd46dc0.mailgun.org',
 			to: newUser.email,
 			subject: 'Tu código de verificación - SimpleTodoApp',
 			text: `Tu código de verificación: ${emailVerificationCode}`,
@@ -96,7 +96,7 @@ export const handleVerifyEmail = async (
 	next: NextFunction
 ) => {
 	try {
-		if (!req.user?.emailVerificationCode?.value) {
+		if (!req.user?.emailVerificationCode) {
 			return next(new AppError('Usuario inválido'))
 		}
 
@@ -131,7 +131,7 @@ export const handleRecoverAccount = async (
 	try {
 		const user = await UserModel.findOne({ email: req.params.email })
 		if (!user) {
-			throw new AppError('Cuenta no existe', 404)
+			return next(new AppError('Cuenta no existe', 404))
 		}
 
 		const passwordResetCode = await user.setCode('passwordResetCode', {
@@ -140,7 +140,7 @@ export const handleRecoverAccount = async (
 		})
 
 		mailGunClient.messages().send({
-			from: 'test@sandbox27abd93a5ff84887bc8103d96fd46dc0.mailgun.org',
+			from: 'SimpleTodoApp@sandbox27abd93a5ff84887bc8103d96fd46dc0.mailgun.org',
 			to: user.email,
 			subject: 'Tu código de recuperación de cuenta - SimpleTodoApp',
 			text: `Tu código de recuperación de cuenta: ${passwordResetCode}`,
@@ -166,7 +166,7 @@ export const handleResetPassword = async (
 			return next(new AppError('Cuenta no existe'))
 		}
 
-		if (!user.passwordResetCode?.value) {
+		if (!user.passwordResetCode) {
 			return next(new AppError('Usuario inválido'))
 		}
 
