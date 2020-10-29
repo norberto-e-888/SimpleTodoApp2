@@ -28,7 +28,7 @@ export const handleFetchTodos = async (
 	try {
 		// @ts-ignore
 		const query: IQuery = req.query
-		const todos = await TodoModel.find(query.match || {})
+		const todos = await TodoModel.find(query.match)
 			.sort(query.sort)
 			.skip((query.page - 1) * query.pageSize)
 			.limit(query.pageSize)
@@ -118,7 +118,7 @@ export const curateTodosQuery = (
 ) => {
 	try {
 		const query: IQuery = {
-			match: { user: req.user?.id as string },
+			match: { ...(req.query.match as any), user: req.user?.id },
 			sort: (req.query.sort as string) || '-movedDate',
 			page: parseInt((req.query.page as string) || '1'),
 			pageSize: parseInt((req.query.pageSize as string) || '5'),
@@ -128,11 +128,8 @@ export const curateTodosQuery = (
 			query.match.$text = { $search: req.query.text as string }
 		}
 
-		if (req.query.status) {
-			query.match.status = req.query.status as string
-		}
-
-		req.query = query as any
+		// @ts-ignore
+		req.query = query
 		next()
 	} catch (error) {
 		return next(error)

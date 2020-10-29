@@ -2,6 +2,7 @@ import { Express, Request, Response, NextFunction } from 'express'
 import mongoose from 'mongoose'
 import bodyParser from 'body-parser'
 import cookieParser from 'cookie-parser'
+import mongoSanitize from 'express-mongo-sanitize'
 import cors from 'cors'
 import { userApi } from '../content/user'
 import { AppError } from '../lib'
@@ -30,6 +31,7 @@ export default async (app: Express) => {
 
 	app.use(bodyParser.json())
 	app.use(cookieParser())
+	app.use(mongoSanitize())
 	app.use(userApi('/usuarios'))
 	app.use(todoApi('/tareas'))
 	app.use((error: AppError, _: Request, res: Response, __: NextFunction) => {
