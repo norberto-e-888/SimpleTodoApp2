@@ -98,7 +98,7 @@ export const handleEmptyTrash = async (
 ) => {
 	try {
 		const user = req.user as IUserDocument
-		const query: any = { user: user.id, status: 'trash' as EStatus }
+		const query: any = { user: user.id, status: EStatus.Trash }
 		if (req.query.text) {
 			query.$text = { $search: req.query.text }
 		}
