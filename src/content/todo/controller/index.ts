@@ -54,7 +54,7 @@ export const handleUpdateTodo = async (
 		const updatedTodo = await TodoModel.findOneAndUpdate(
 			{ _id: req.params.todo, user: user.id },
 			req.body,
-			{ new: true }
+			{ new: true, runValidators: true }
 		)
 
 		if (!updatedTodo) {
