@@ -11,34 +11,40 @@ export default (
 		throw Error('longitud debe ser mayor a cero')
 	}
 
-	let opciones = ''
 	let codigo = ''
 	const allowedChars = Array.from(new Set(chars.split('')))
-	for (const char of allowedChars) {
-		switch (char) {
-			case 'A':
-				opciones += mayusculas
-				break
-
-			case 'a':
-				opciones += minisculas
-				break
-
-			case '#':
-				opciones += numeros
-				break
-
-			case '!':
-				opciones += especiales
-				break
-
-			default:
-				break
-		}
-	}
-
 	for (let i = 0; i < longitud; i++) {
 		if (!posibilidadesIguales) {
+			let opciones = ''
+			for (const char of allowedChars) {
+				switch (char) {
+					case 'A':
+						opciones += mayusculas
+						break
+
+					case 'a':
+						opciones += minisculas
+						break
+
+					case '#':
+						opciones += numeros
+						break
+
+					case '!':
+						opciones += especiales
+						break
+
+					default:
+						break
+				}
+			}
+
+			if (!opciones.length) {
+				throw new Error(
+					'"chars" debe incluir algún caracter representante de grupo (A, a, #, !)'
+				)
+			}
+
 			const randomIndex = Math.floor(Math.random() * opciones.length)
 			codigo += opciones[randomIndex]
 		} else {
@@ -66,7 +72,7 @@ export default (
 			}
 
 			const randomSetIndex = Math.floor(
-				Math.random() * (opcionesDeEstaIteracion.length - 1)
+				Math.random() * opcionesDeEstaIteracion.length
 			)
 
 			codigo += opcionesDeEstaIteracion[randomSetIndex]
