@@ -1,6 +1,7 @@
 import { NextFunction, Response } from 'express'
 import { TodoModel } from '..'
 import { createChacheKey, deleteUserCache } from '../../../cache'
+import env from '../../../env'
 import { AppError, redisClient } from '../../../lib'
 import { IAuthenticatedRequest } from '../../user/controller'
 import { IUserDocument } from '../../user/model'
@@ -34,10 +35,15 @@ export const handleFetchTodos = async (
 			.limit(query.pageSize)
 
 		const count = await TodoModel.find(query.match).countDocuments()
-		const key = createChacheKey(req)
 		const data = { todos, count }
-		redisClient.set(key, JSON.stringify(data))
-		redisClient.expire(key, 60 * 15)
+		if (env.nodeEnv === 'development') {
+			const key = createChacheKey(req)
+			// @ts-ignore
+			redisClient.set(key, JSON.stringify(data))
+			// @ts-ignore
+			redisClient.expire(key, 60 * 15)
+		}
+
 		return res.json(data)
 	} catch (error) {
 		return next(error)
