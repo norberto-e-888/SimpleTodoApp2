@@ -87,7 +87,7 @@ export const handleFetchById = async (
 }
 
 export const handleGetMe = (req: Request, res: Response) => {
-	return res.status(req.user ? 200 : 401).json(req.user)
+	return res.status(req.user ? 200 : 401).json(req.user?.toObject())
 }
 
 export const handleVerifyEmail = async (
