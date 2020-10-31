@@ -6,7 +6,7 @@
 		"dev": "ts-node-dev -r dotenv/config src/index.ts",
 		"test": "jest --watchAll --detectOpenHandles",
 		"build": "tsc",
-		"start": "node -r dotenv/config build/index.js"
+		"start": "node build/index.js"
 	},
 	"license": "MIT",
 	"dependencies": {
