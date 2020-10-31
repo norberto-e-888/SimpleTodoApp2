@@ -20,7 +20,10 @@ export default async (app: Express) => {
 		useUnifiedTopology: true,
 	})
 
-	await jobs(db)
+	if (env.nodeEnv !== 'test') {
+		await jobs(db)
+	}
+
 	app.use(
 		cors({
 			credentials: true,

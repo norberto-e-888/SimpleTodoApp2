@@ -1,7 +1,6 @@
 {
 	"name": "simple-todo-app-2",
 	"version": "1.0.0",
-	"description": "",
 	"main": "index.js",
 	"scripts": {
 		"dev": "ts-node-dev -r dotenv/config src/index.ts",
@@ -9,8 +8,6 @@
 		"build": "tsc",
 		"start": "node -r dotenv/config build/index.js"
 	},
-	"keywords": [],
-	"author": "",
 	"license": "MIT",
 	"dependencies": {
 		"@azure/ai-text-analytics": "^5.0.1",

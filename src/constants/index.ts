@@ -3,3 +3,4 @@ export const validEmailRegEx = new RegExp(
 )
 
 export const supportedLanguages = ['en', 'es', 'fr']
+export const THE_START_OF_THE_WORLD = 'Thu, 01 Jan 1970 00:00:00 GMT'
