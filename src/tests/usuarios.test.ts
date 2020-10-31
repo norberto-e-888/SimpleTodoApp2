@@ -2,7 +2,7 @@ import request from 'supertest'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { extractCookies, mailGunClient } from '../lib'
-import { validAuthDto } from './data'
+import { validAuthDto, validSignInDto } from './data'
 import { IUserModel } from '../content/user/model'
 
 describe('/usuarios', () => {
@@ -53,6 +53,13 @@ describe('/usuarios', () => {
 		it('Devuelve un 400 si el correo ya está en uso', async () => {
 			await request(global.app).post(url).send(validAuthDto).expect(201)
 			await request(global.app).post(url).send(validAuthDto).expect(400)
+		})
+	})
+
+	describe('POST /inicio', () => {
+		const url = '/usuarios/inicio'
+		it('Permite que un usuario existente se autentique', async () => {
+			await request(global.app).post(url).send(validSignInDto).expect(200)
 		})
 	})
 })

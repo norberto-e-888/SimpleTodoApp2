@@ -44,7 +44,7 @@ export const handleSignIn = async (
 		})
 
 		if (!user) {
-			throw new Error('Credenciales inválidas')
+			throw new AppError('Credenciales inválidas', 400)
 		}
 
 		const isPasswordValid = await bcrypt.compare(
@@ -53,7 +53,7 @@ export const handleSignIn = async (
 		)
 
 		if (!isPasswordValid) {
-			throw new Error('Credenciales inválidas')
+			throw new AppError('Credenciales inválidas', 400)
 		}
 
 		const authResult = await generateAuthenticationResult(user, req.ip)

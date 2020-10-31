@@ -1,4 +1,4 @@
-import { IRegistroDto } from '../../content/user/type'
+import { IInicioDto, IRegistroDto } from '../../content/user/type'
 
 export const validEmail = 'test@email.com'
 export const invalidEmail = 'invalid'
@@ -21,4 +21,9 @@ export const invalidAuthDto: IRegistroDto = {
 export const incompleteAuthDto: Omit<IRegistroDto, 'password' | 'email'> = {
 	nombre: 'Norberto',
 	apellido: 'Cáceres',
+}
+
+export const validSignInDto: IInicioDto = {
+	email: validEmail,
+	password: validPassword,
 }
