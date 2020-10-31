@@ -12,8 +12,8 @@ export default (
 	}
 
 	let codigo = ''
-	const allowedChars = Array.from(new Set(chars.split('')))
 	let opciones = ''
+	const allowedChars = Array.from(new Set(chars.split('')))
 	if (!posibilidadesIguales) {
 		for (const char of allowedChars) {
 			switch (char) {
