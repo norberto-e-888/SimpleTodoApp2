@@ -13,8 +13,9 @@ export const handleCreateTodo = async (
 	next: NextFunction
 ) => {
 	try {
+		const user = req.user as IUserDocument
 		const newTodo = await TodoModel.create(req.body)
-		deleteUserCache(req.user?.id as string)
+		deleteUserCache(user.id as string)
 		return res.status(201).json(newTodo.toObject())
 	} catch (error) {
 		return next(error)
@@ -67,7 +68,7 @@ export const handleUpdateTodo = async (
 			throw new AppError('Todo not found.', 404)
 		}
 
-		deleteUserCache(req.user?.id as string)
+		deleteUserCache(user.id as string)
 		return res.status(200).json(updatedTodo)
 	} catch (error) {
 		return next(error)
@@ -90,7 +91,7 @@ export const handleDeleteTodo = async (
 			return next(new AppError('Todo not found.', 404))
 		}
 
-		deleteUserCache(req.user?.id as string)
+		deleteUserCache(user.id as string)
 		return res.status(200).json(deletedTodo)
 	} catch (error) {
 		return next(error)
@@ -110,7 +111,7 @@ export const handleEmptyTrash = async (
 		}
 
 		const { deletedCount = 0 } = await TodoModel.deleteMany(query)
-		deleteUserCache(req.user?.id as string)
+		deleteUserCache(user.id as string)
 		return res.status(200).send(deletedCount + ' tareas borradas')
 	} catch (error) {
 		return next(error)
