@@ -56,10 +56,3 @@ describe('/usuarios', () => {
 		})
 	})
 })
-
-// tal input -> esperas tal output
-// no pruebes detalles de implementación
-// function A(x: number, y: string, z: user) => Promise<SomeOtherInterface>
-// de nada sirve una prueba que no falla
-// haz todo lo posible para hacerla fallar (se estricto/imaginativo de como pruebas que lo correcto haya pasado)
-// rojo a verde
