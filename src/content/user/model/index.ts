@@ -2,7 +2,7 @@ import { Schema, model, HookNextFunction, Document, Model } from 'mongoose'
 import brcrypt from 'bcryptjs'
 import { validEmailRegEx } from '../../../constants'
 import { MongooseSchemaDefinition } from '../../../typings'
-import { generateCode } from '../../../lib'
+import { AppError, generateCode } from '../../../lib'
 
 export enum ESentiment {
 	Positive = 'positive',
@@ -116,7 +116,7 @@ userSchema.statics.isEmailInUse = async function (
 	})
 
 	if (user && throwIfExists) {
-		throw new Error(`"${email}" ya está en uso`)
+		throw new AppError(`"${email}" ya está en uso`, 400)
 	}
 
 	return !!user

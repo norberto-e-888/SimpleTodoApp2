@@ -7,9 +7,10 @@ import { IUserModel } from '../content/user/model'
 
 describe('/usuarios', () => {
 	describe('POST /registrar', () => {
+		const url = '/usuarios/registrar'
 		it('Permite que un usuario se registre', async () => {
 			await request(global.app)
-				.post('/usuarios/registrar')
+				.post(url)
 				.send(validAuthDto)
 				.expect(201)
 				.then(async (response) => {
@@ -48,5 +49,17 @@ describe('/usuarios', () => {
 					).toBe(true)
 				})
 		})
+
+		it('Devuelve un 400 si el correo ya está en uso', async () => {
+			await request(global.app).post(url).send(validAuthDto).expect(201)
+			await request(global.app).post(url).send(validAuthDto).expect(400)
+		})
 	})
 })
+
+// tal input -> esperas tal output
+// no pruebes detalles de implementación
+// function A(x: number, y: string, z: user) => Promise<SomeOtherInterface>
+// de nada sirve una prueba que no falla
+// haz todo lo posible para hacerla fallar (se estricto/imaginativo de como pruebas que lo correcto haya pasado)
+// rojo a verde
