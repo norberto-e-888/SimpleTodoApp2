@@ -13,41 +13,44 @@ export default (
 
 	let codigo = ''
 	const allowedChars = Array.from(new Set(chars.split('')))
-	for (let i = 0; i < longitud; i++) {
-		if (!posibilidadesIguales) {
-			let opciones = ''
-			for (const char of allowedChars) {
-				switch (char) {
-					case 'A':
-						opciones += mayusculas
-						break
+	let opciones = ''
 
-					case 'a':
-						opciones += minisculas
-						break
+	if (!posibilidadesIguales) {
+		for (const char of allowedChars) {
+			switch (char) {
+				case 'A':
+					opciones += mayusculas
+					break
 
-					case '#':
-						opciones += numeros
-						break
+				case 'a':
+					opciones += minisculas
+					break
 
-					case '!':
-						opciones += especiales
-						break
+				case '#':
+					opciones += numeros
+					break
 
-					default:
-						break
-				}
+				case '!':
+					opciones += especiales
+					break
+
+				default:
+					break
 			}
+		}
 
-			if (!opciones.length) {
-				throw new Error(
-					'"chars" debe incluir algún caracter representante de grupo (A, a, #, !)'
-				)
-			}
+		if (!opciones.length) {
+			throw new Error(
+				'"chars" debe incluir algún caracter representante de grupo (A, a, #, !)'
+			)
+		}
 
+		for (let i = 0; i < longitud; i++) {
 			const randomIndex = Math.floor(Math.random() * opciones.length)
 			codigo += opciones[randomIndex]
-		} else {
+		}
+	} else {
+		for (let i = 0; i < longitud; i++) {
 			const randomIndex = Math.floor(Math.random() * allowedChars.length)
 			let opcionesDeEstaIteracion = ''
 			switch (allowedChars[randomIndex]) {
