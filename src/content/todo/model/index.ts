@@ -7,6 +7,7 @@ import {
 	HookNextFunction,
 	UpdateQuery,
 } from 'mongoose'
+import { MongooseSchemaDefinition } from '../../../typings'
 
 export enum EStatus {
 	Pending = 'pending',
@@ -14,44 +15,43 @@ export enum EStatus {
 	Trash = 'trash',
 }
 
-const todoSchema = new Schema(
-	{
-		body: {
-			type: String,
-			required: true,
-			maxlength: 500,
-		},
-		status: {
-			type: String,
-			enum: Object.values(EStatus), // ['pending', 'completed', 'trash'],
-			default: EStatus.Pending,
-		},
-		user: {
-			type: Types.ObjectId,
-			ref: 'User',
-			required: true,
-		},
-		movedDate: {
-			type: Date,
-			default: () => new Date(),
-		},
+const schemaDefinition: MongooseSchemaDefinition<ITodo> = {
+	body: {
+		type: String,
+		required: true,
+		maxlength: 500,
 	},
-	{
-		id: true,
-		toObject: {
-			virtuals: true,
-			transform: (_: ITodoDocument, obj: ITodo) => ({
-				...obj,
-				_id: undefined,
-				__v: undefined,
-			}),
-		},
-		timestamps: {
-			createdAt: true,
-			updatedAt: true,
-		},
-	}
-)
+	status: {
+		type: String,
+		enum: Object.values(EStatus), // ['pending', 'completed', 'trash'],
+		default: EStatus.Pending,
+	},
+	user: {
+		type: Types.ObjectId,
+		ref: 'User',
+		required: true,
+	},
+	movedDate: {
+		type: Date,
+		default: () => new Date(),
+	},
+}
+
+const todoSchema = new Schema(schemaDefinition, {
+	id: true,
+	toObject: {
+		virtuals: true,
+		transform: (_: ITodoDocument, obj: ITodo) => ({
+			...obj,
+			_id: undefined,
+			__v: undefined,
+		}),
+	},
+	timestamps: {
+		createdAt: true,
+		updatedAt: true,
+	},
+})
 
 todoSchema.index({ body: 'text' })
 

@@ -22,7 +22,7 @@ const userCodeSchema = {
 	expiration: Date,
 }
 
-const schemaDefinition: MongooseSchemaDefinition = {
+const schemaDefinition: MongooseSchemaDefinition<IUsuario> = {
 	nombre: {
 		type: String,
 		required: true,
@@ -91,6 +91,10 @@ const userSchema = new Schema(schemaDefinition, {
 			__v: undefined,
 		}),
 	},
+	timestamps: {
+		createdAt: 'timestamps.createdAt',
+		updatedAt: 'timestamps.updatedAt',
+	},
 })
 
 userSchema.pre('save', async function (
@@ -155,6 +159,10 @@ export interface IUsuario {
 	refreshToken?: string
 	emailVerificationCode?: IUserCode
 	passwordResetCode?: IUserCode
+	timestamps: {
+		createdAt: Date
+		updatedAt: Date
+	}
 }
 
 export interface IDoesEmailExistOptions {

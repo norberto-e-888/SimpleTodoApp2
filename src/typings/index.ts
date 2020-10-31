@@ -1,8 +1,7 @@
 import { SchemaDefinition, SchemaTypeOpts } from 'mongoose'
-import { IUsuario } from '../content/user/model'
 
-export type MongooseSchemaDefinition = {
-	[K in keyof Required<Omit<IUsuario, 'timestamps' | 'id'>>]:
-		| SchemaDefinition
-		| SchemaTypeOpts<any>
+export type MongooseSchemaDefinition<T> = {
+	[K in keyof Required<
+		Omit<T, 'timestamps' | 'createdAt' | 'updatedAt' | 'id'>
+	>]: SchemaDefinition | SchemaTypeOpts<any>
 }
