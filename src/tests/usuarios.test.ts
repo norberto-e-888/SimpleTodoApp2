@@ -2,8 +2,9 @@ import request from 'supertest'
 import jwt from 'jsonwebtoken'
 import bcrypt from 'bcryptjs'
 import { extractCookies, mailGunClient } from '../lib'
-import { validAuthDto, validSignInDto } from './data'
+import { validSignUpDto, validSignInDto } from './data'
 import { IUserModel } from '../content/user/model'
+import { mockSignUp } from './helpers'
 
 describe('/usuarios', () => {
 	describe('POST /registrar', () => {
@@ -11,7 +12,7 @@ describe('/usuarios', () => {
 		it('Permite que un usuario se registre', async () => {
 			await request(global.app)
 				.post(url)
-				.send(validAuthDto)
+				.send(validSignUpDto)
 				.expect(201)
 				.then(async (response) => {
 					const {
@@ -24,7 +25,7 @@ describe('/usuarios', () => {
 					const { user }: any = jwt.decode(jwtCookie)
 					const UserModel = global.connection.model('User') as IUserModel
 					const justCreatedUser = await UserModel.findOne({
-						email: validAuthDto.email,
+						email: validSignUpDto.email,
 					})
 
 					const justCreatedUserPlainObject = justCreatedUser?.toObject()
@@ -43,7 +44,7 @@ describe('/usuarios', () => {
 					expect(mailGunClient.messages().send).toHaveBeenCalledTimes(1)
 					expect(
 						await bcrypt.compare(
-							validAuthDto.password,
+							validSignUpDto.password,
 							justCreatedUser?.password as string
 						)
 					).toBe(true)
@@ -51,14 +52,15 @@ describe('/usuarios', () => {
 		})
 
 		it('Devuelve un 400 si el correo ya está en uso', async () => {
-			await request(global.app).post(url).send(validAuthDto).expect(201)
-			await request(global.app).post(url).send(validAuthDto).expect(400)
+			await request(global.app).post(url).send(validSignUpDto).expect(201)
+			await request(global.app).post(url).send(validSignUpDto).expect(400)
 		})
 	})
 
 	describe('POST /inicio', () => {
 		const url = '/usuarios/inicio'
 		it('Permite que un usuario existente se autentique', async () => {
+			await mockSignUp(validSignUpDto)
 			await request(global.app).post(url).send(validSignInDto).expect(200)
 		})
 	})

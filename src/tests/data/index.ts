@@ -4,7 +4,7 @@ export const validEmail = 'test@email.com'
 export const invalidEmail = 'invalid'
 export const validPassword = '12345678'
 export const invalidPassword = '1234567'
-export const validAuthDto: IRegistroDto = {
+export const validSignUpDto: IRegistroDto = {
 	email: validEmail,
 	password: validPassword,
 	nombre: 'Norberto',
