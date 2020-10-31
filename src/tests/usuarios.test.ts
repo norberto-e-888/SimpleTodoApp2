@@ -63,5 +63,17 @@ describe('/usuarios', () => {
 			await mockSignUp(validSignUpDto)
 			await request(global.app).post(url).send(validSignInDto).expect(200)
 		})
+
+		it('Devuelve un 400 cuando las credenciales son inválidas', async () => {
+			await request(global.app).post(url).send(validSignInDto).expect(400)
+			await mockSignUp(validSignUpDto)
+			await request(global.app)
+				.post(url)
+				.send({
+					...validSignInDto,
+					password: validSignInDto.password + 'not-valid',
+				})
+				.expect(400)
+		})
 	})
 })
